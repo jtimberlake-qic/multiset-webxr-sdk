@@ -1,0 +1,36 @@
+.app-container {
+  position: relative;
+}
+
+/* AR Button Style */
+#ARButton {
+    position: relative !important;
+    left: unset !important;
+    background: rgba(141, 57, 213, 1) !important;
+    opacity: 1 !important;
+    border-radius: 12px !important;
+    font-family: "Plus Jakarta Sans", sans-serif !important;
+  }
+  
+  .arBtnContHide {
+    display: none !important;
+  }
+  
+  .arBtnContShow {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100vh;
+    background: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .btn {
+    cursor: pointer;
+    background: rgba(141, 57, 213, 1) !important;
+    opacity: 1 !important;
+    border-radius: 12px !important;
+    font-family: "Plus Jakarta Sans", sans-serif !important;
+  }
