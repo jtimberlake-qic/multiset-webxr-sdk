@@ -430,32 +430,31 @@ function App() {
         poseResult.rotation.w
       );
 
-      const rotationMatrix = new THREE.Matrix4();
-      rotationMatrix.makeRotationFromQuaternion(resRotation);
-      const elements = rotationMatrix.elements;
+      // 1. Compose the transformation matrix directly from position and rotation
+      const responseMatrix = new THREE.Matrix4();
+      const scaleVec = new THREE.Vector3(1, 1, 1); // Assuming scale is 1
+      responseMatrix.compose(resPosition, resRotation, scaleVec);
 
-      const negatedResponseMatrix = new THREE.Matrix4();
-      // prettier-ignore
-      negatedResponseMatrix.set(
-      elements[0], -elements[1], -elements[2], resPosition.x,
-      elements[4], -elements[5], -elements[6], resPosition.y,
-      elements[8], -elements[9], -elements[10], resPosition.z,
-      0, 0, 0, 1
-    )
+      // 2. Invert the matrix to get the correct inverse pose
+      // Using clone() before invert() is good practice to not modify responseMatrix
+      const inverseResponseMatrix = responseMatrix.clone().invert();
 
+      // 3. Multiply with the tracker space
       const resultantMatrix = new THREE.Matrix4();
-      const inv = negatedResponseMatrix.clone().invert();
-      resultantMatrix.multiplyMatrices(trackerSpace, inv);
+      resultantMatrix.multiplyMatrices(trackerSpace, inverseResponseMatrix);
 
+      // 4. Decompose the final matrix to get the object's new pose
       const position = new THREE.Vector3();
       const rotation = new THREE.Quaternion();
       const scale = new THREE.Vector3();
-
       resultantMatrix.decompose(position, rotation, scale);
 
-      meshGroup.position.set(position.x, position.y, position.z);
-      meshGroup.quaternion.set(rotation.x, rotation.y, rotation.z, rotation.w);
-      meshGroup.scale.set(1, 1, 1);
+      // 5. Apply the new pose to your object
+      meshGroup.position.copy(position);
+      meshGroup.quaternion.copy(rotation);
+      meshGroup.scale.set(1, 1, 1); // It's better to explicitly set scale if you don't use the decomposed one
+
+      meshGroup.visible = true;
 
       meshGroup.updateMatrix();
       meshGroup.visible = true;
