@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import * as THREE from "three";
 import type { IGetMapsDetailsResponse, ILocalizeAndMapDetails, ILocalizeResponse, MapType } from "./interfaces";
 import { FILE_DOWNLOAD_URL, MAP_DETAILS_URL, QUERY_URL } from "./config";
@@ -18,24 +19,43 @@ interface ICameraImgData {
     height: number;
 }
 
+
 const getCameraIntrinsics = (
     projectionMatrix: Float32Array,
-    viewport: XRViewport
+    viewport: XRViewport,
+    deviceOrientation: "landscape" | "portrait"
 ): ICameraIntrinsics => {
     const p = projectionMatrix;
     const u0 = ((1 - p[8]) * viewport.width) / 2 + viewport.x;
     const v0 = ((1 - p[9]) * viewport.height) / 2 + viewport.y;
     const ax = (viewport.width / 2) * p[0];
     const ay = (viewport.height / 2) * p[5];
+    const { width, height } = viewport;
 
-    const intr = {
-        fx: ax,
-        fy: ay,
-        px: u0,
-        py: v0,
-        width: viewport.width,
-        height: viewport.height,
-    };
+    let intr = {} as ICameraIntrinsics;
+
+    if (deviceOrientation === "landscape") {
+
+        // Landscape mode
+        intr = {
+            fx: ay,
+            fy: ax,
+            py: v0,
+            px: width - u0,
+            width,
+            height
+        };
+    } else {
+        // Portrait mode
+        intr = {
+            fx: ax,
+            fy: ay,
+            px: u0,
+            py: v0,
+            width,
+            height
+        };
+    }
 
     return intr;
 }
@@ -224,4 +244,19 @@ const prepareFormdataAndQuery = async (
     }
 }
 
-export { getCameraIntrinsics, getCameraTextureAsImage, prepareFormdataAndQuery, fileDownload }
+function useDeviceOrientation() {
+    const [isPortrait, setIsPortrait] = useState(window.innerHeight > window.innerWidth);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsPortrait(window.innerHeight > window.innerWidth);
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    return isPortrait ? 'portrait' : 'landscape';
+}
+
+export { getCameraIntrinsics, getCameraTextureAsImage, prepareFormdataAndQuery, fileDownload, useDeviceOrientation }
