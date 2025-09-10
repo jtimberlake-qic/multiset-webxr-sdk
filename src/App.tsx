@@ -20,7 +20,6 @@ import {
   getCameraIntrinsics,
   getCameraTextureAsImage,
   prepareFormdataAndQuery,
-  useDeviceOrientation,
 } from "./Utils";
 
 import {
@@ -61,8 +60,6 @@ function App() {
   const controlsRef = useRef<OrbitControls | null>(null);
   const meshGroupRef = useRef<THREE.Group | null>(null);
   const trackerSpaceRef = useRef<THREE.Matrix4 | null>(null);
-
-  const deviceOrientation = useDeviceOrientation();
 
   const exitARMode = useCallback(() => {
     const renderer = rendererRef.current;
@@ -116,8 +113,7 @@ function App() {
 
                 const cameraIntrinsics = getCameraIntrinsics(
                   view.projectionMatrix,
-                  cameraViewport,
-                  deviceOrientation
+                  cameraViewport
                 );
 
                 trackerSpaceRef.current = new THREE.Matrix4();
@@ -168,7 +164,7 @@ function App() {
       setToastMessage("AR Session not available");
       console.error("AR Session not available");
     }
-  }, [accessToken, deviceOrientation]);
+  }, [accessToken]);
 
   // Handle window resize
   const onWindowResize = useCallback(() => {

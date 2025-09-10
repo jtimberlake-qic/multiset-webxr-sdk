@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import * as THREE from "three";
 import type { IGetMapsDetailsResponse, ILocalizeAndMapDetails, ILocalizeResponse, MapType } from "./interfaces";
 import { FILE_DOWNLOAD_URL, MAP_DETAILS_URL, QUERY_URL } from "./config";
@@ -23,7 +22,6 @@ interface ICameraImgData {
 const getCameraIntrinsics = (
     projectionMatrix: Float32Array,
     viewport: XRViewport,
-    deviceOrientation: "landscape" | "portrait"
 ): ICameraIntrinsics => {
     const p = projectionMatrix;
     const u0 = ((1 - p[8]) * viewport.width) / 2 + viewport.x;
@@ -32,32 +30,14 @@ const getCameraIntrinsics = (
     const ay = (viewport.height / 2) * p[5];
     const { width, height } = viewport;
 
-    let intr = {} as ICameraIntrinsics;
-
-    if (deviceOrientation === "landscape") {
-
-        // Landscape mode
-        intr = {
-            fx: ay,
-            fy: ax,
-            py: v0,
-            px: width - u0,
-            width,
-            height
-        };
-    } else {
-        // Portrait mode
-        intr = {
-            fx: ax,
-            fy: ay,
-            px: u0,
-            py: v0,
-            width,
-            height
-        };
-    }
-
-    return intr;
+    return {
+        fx: ax,
+        fy: ay,
+        px: u0,
+        py: v0,
+        width,
+        height
+    };
 }
 
 const compressToJpeg = async (buffer: ArrayBuffer, width: number, height: number, quality = 0.8): Promise<Blob> => {
@@ -244,19 +224,5 @@ const prepareFormdataAndQuery = async (
     }
 }
 
-function useDeviceOrientation() {
-    const [isPortrait, setIsPortrait] = useState(window.innerHeight > window.innerWidth);
 
-    useEffect(() => {
-        const handleResize = () => {
-            setIsPortrait(window.innerHeight > window.innerWidth);
-        };
-
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
-    return isPortrait ? 'portrait' : 'landscape';
-}
-
-export { getCameraIntrinsics, getCameraTextureAsImage, prepareFormdataAndQuery, fileDownload, useDeviceOrientation }
+export { getCameraIntrinsics, getCameraTextureAsImage, prepareFormdataAndQuery, fileDownload }
